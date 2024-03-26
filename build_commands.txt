@@ -1,0 +1,10 @@
+cd ./app/
+west build -d build/left -b nice_nano_v2 -- -DSHIELD="corne_left nice_view_adapter nice_view" -DZMK_CONFIG="/workspaces/zmk-config/config"
+west build -d build/right -b nice_nano_v2 -- -DSHIELD="corne_right nice_view_adapter nice_view" -DZMK_CONFIG="/workspaces/zmk-config/config"
+
+
+west build -d build/left
+west build -d build/right
+
+
+
