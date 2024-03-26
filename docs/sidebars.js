@@ -22,6 +22,7 @@ module.exports = {
       "features/beta-testing",
     ],
     Behaviors: [
+      "behaviors/index",
       "behaviors/key-press",
       "behaviors/layers",
       "behaviors/misc",
@@ -53,7 +54,6 @@ module.exports = {
       "codes/applications",
       "codes/input-assist",
       "codes/power",
-      "codes/keymap-upgrader",
     ],
     Configuration: [
       "config/index",
