@@ -113,6 +113,12 @@ config ZMK_HID_INDICATORS
       Enable HID indicators, used for detecting state of Caps/Scroll/Num Lock,
       Kata, and Compose.
 
+config ZMK_HID_SEPARATE_MOD_RELEASE_REPORT
+    bool "Release Modifiers Separately"
+    help
+      Send a separate release event for the modifiers, to make sure the release
+      of the modifier doesn't get recognized before the actual key's release event.
+
 menu "Output Types"
 
 config ZMK_USB
@@ -157,7 +163,7 @@ config ZMK_BLE_EXPERIMENTAL_CONN
     bool "Experimental BLE connection changes"
     help
       Enables a combination of settings that are planned to be default in future versions of ZMK
-      to improve connection stability. This includes changes to timing on BLE pairing initation,
+      to improve connection stability. This includes changes to timing on BLE pairing initiation,
       restores use of the updated/new LLCP implementation, and disables 2M PHY support.
 
 config ZMK_BLE_EXPERIMENTAL_SEC
@@ -252,12 +258,34 @@ rsource "src/split/Kconfig"
 #Basic Keyboard Setup
 endmenu
 
+menu "Keymaps"
+
+config ZMK_KEYMAP_LAYER_REORDERING
+    bool "Layer Reordering Support"
+
+config ZMK_KEYMAP_SETTINGS_STORAGE
+    bool "Settings Save/Load"
+    depends on SETTINGS
+    depends on ZMK_BEHAVIOR_LOCAL_IDS
+
+if ZMK_KEYMAP_SETTINGS_STORAGE
+
+config ZMK_KEYMAP_LAYER_NAME_MAX_LEN
+    int "Max Layer Name Length"
+    default 20
+
+endif
+
+endmenu # Keymaps
+
+rsource "src/studio/Kconfig"
+
 menu "Display/LED Options"
 
 rsource "src/display/Kconfig"
 
 menuconfig ZMK_RGB_UNDERGLOW
-    bool "RGB Adressable LED Underglow"
+    bool "RGB Addressable LED Underglow"
     select LED_STRIP
     select ZMK_LOW_PRIORITY_WORK_QUEUE
 
@@ -405,6 +433,7 @@ config ZMK_SLEEP
     bool "Enable deep sleep support"
     depends on HAS_POWEROFF
     select POWEROFF
+    select ZMK_PM_DEVICE_SUSPEND_RESUME
     imply USB
 
 if ZMK_SLEEP
@@ -422,6 +451,26 @@ endif
 config ZMK_EXT_POWER
     bool "Enable support to control external power output"
     default y
+
+config ZMK_PM
+    bool
+
+config ZMK_PM_DEVICE_SUSPEND_RESUME
+    bool
+    select ZMK_PM
+
+config ZMK_PM_SOFT_OFF
+    bool "Soft-off support"
+    depends on HAS_POWEROFF
+    select ZMK_PM
+    select PM_DEVICE
+    select ZMK_PM_DEVICE_SUSPEND_RESUME
+    select POWEROFF
+
+config ZMK_GPIO_KEY_WAKEUP_TRIGGER
+    bool "Hardware supported wakeup (GPIO)"
+    default y
+    depends on DT_HAS_ZMK_GPIO_KEY_WAKEUP_TRIGGER_ENABLED && ZMK_PM_SOFT_OFF
 
 #Power Management
 endmenu
@@ -469,7 +518,11 @@ if USB_DEVICE_STACK
 
 config ZMK_USB_INIT_PRIORITY
     int "USB Init Priority"
-    default 50
+    default 94
+
+config ZMK_USB_HID_INIT_PRIORITY
+    int "USB HID Init Priority"
+    default 95
 
 #USB
 endif
@@ -498,6 +551,21 @@ config ZMK_KSCAN_EVENT_QUEUE_SIZE
     default 4
 
 endif # ZMK_KSCAN
+
+config ZMK_KSCAN_SIDEBAND_BEHAVIORS
+    bool
+    default y
+    depends on DT_HAS_ZMK_KSCAN_SIDEBAND_BEHAVIORS_ENABLED
+    select KSCAN
+
+if ZMK_KSCAN_SIDEBAND_BEHAVIORS
+
+config ZMK_KSCAN_SIDEBAND_BEHAVIORS_INIT_PRIORITY
+    int "Keyboard scan sideband behaviors driver init priority"
+    # The default kscan init priority is 90, so be sure we are initialized later.
+    default 95
+
+endif # ZMK_KSCAN_SIDEBAND_BEHAVIORS
 
 menu "Logging"
 
